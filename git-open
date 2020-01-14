@@ -4,9 +4,9 @@
 #
 # usage: git open
 
-# get remote url and change 'git@github.com:user/repo' to url format
 url=$(git config --get remote.origin.url)
 
+# change 'git@github.com:user/repo' to url format
 if grep -Evi '^http' > /dev/null <<< $url; then
   url=$(sed -e 's_:_/_' -e 's_^git@_http://_')
 fi

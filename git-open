@@ -1,0 +1,22 @@
+#! /bin/sh -
+# Simple bash script to open the current github repo you are in
+# in your default browser. Ensure this file is in your $PATH
+#
+# usage: git open
+
+# get remote url and change 'git@github.com:user/repo' to url format
+url=$(git config --get remote.origin.url |  sed -e 's_:_/_' -e 's_^git@_http://_')
+
+if [ ! -z "$url" ]; then
+  case $(uname) in
+    'Linux' )
+      xdg-open "$url"
+      ;;
+    'Darwin' )
+      open "$url"
+      ;;
+  esac
+else
+  echo "Trouble finding remote URL"
+  exit 1
+fi

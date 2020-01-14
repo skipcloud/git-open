@@ -3,8 +3,13 @@
 # in your default browser. Ensure this file is in your $PATH
 #
 # usage: git open
+cmd='git config --get remote.origin.url'
+url=$($cmd)
 
-url=$(git config --get remote.origin.url)
+# If a local repo try get the origin url from there
+if grep -E '^/' > /dev/null <<< $url; then
+  url=$(cd "${url}"; $cmd)
+fi
 
 # change 'git@github.com:user/repo' to url format
 if grep -Evi '^http' > /dev/null <<< $url; then

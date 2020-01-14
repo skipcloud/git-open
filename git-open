@@ -5,7 +5,11 @@
 # usage: git open
 
 # get remote url and change 'git@github.com:user/repo' to url format
-url=$(git config --get remote.origin.url |  sed -e 's_:_/_' -e 's_^git@_http://_')
+url=$(git config --get remote.origin.url)
+
+if grep -Evi '^http' > /dev/null <<< $url; then
+  url=$(sed -e 's_:_/_' -e 's_^git@_http://_')
+fi
 
 if [ ! -z "$url" ]; then
   case $(uname) in

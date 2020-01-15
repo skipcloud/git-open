@@ -12,6 +12,10 @@ path=
 # appending a path as needed for a branch or a commit if specified
 # as an option.
 build_url() {
+  # There is no url or git protocol to work with
+  if [ -z "$url" ]; then
+    return
+  fi
   # If a local repo try get the origin url from there
   if grep -E '^/' > /dev/null <<< $url; then
     url=$(cd "${url}"; $cmd)
@@ -113,7 +117,6 @@ if [ ! -z "$url" ]; then
       xdg-open "$url"
       ;;
     'Darwin' )
-
       open "$url"
       ;;
   esac

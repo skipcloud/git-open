@@ -13,7 +13,7 @@ fi
 
 # change 'git@github.com:user/repo' to url format
 if grep -Evi '^http' > /dev/null <<< $url; then
-  url=$(sed -e 's_:_/_' -e 's_^git@_http://_')
+  url=$(sed -e 's_:_/_' -e 's_^git@_https://_')
 fi
 
 if [ ! -z "$url" ]; then

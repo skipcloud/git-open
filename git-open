@@ -2,7 +2,8 @@
 # Simple bash script to open the current github repo you are in
 # in your default browser. Ensure this file is in your $PATH
 #
-# usage: git open
+# usage: git open [-help | -branch=<branch-name> | -commit=<commit-sha>]"
+
 cmd='git config --get remote.origin.url'
 url=$($cmd)
 path=

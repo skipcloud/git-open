@@ -5,16 +5,106 @@
 # usage: git open
 cmd='git config --get remote.origin.url'
 url=$($cmd)
+path=
 
-# If a local repo try get the origin url from there
-if grep -E '^/' > /dev/null <<< $url; then
-  url=$(cd "${url}"; $cmd)
+# build_url will pull the remote origin url from the git config
+# appending a path as needed for a branch or a commit if specified
+# as an option.
+build_url() {
+  # If a local repo try get the origin url from there
+  if grep -E '^/' > /dev/null <<< $url; then
+    url=$(cd "${url}"; $cmd)
+  fi
+
+  # change 'git@github.com:user/repo' to url format
+  if grep -Evi '^http' > /dev/null <<< $url; then
+    url=$(sed -e 's_:_/_' -e 's_^git@_https://_' )
+  fi
+
+  # remove trailing '.git' from url
+  if grep -Ei '\.git[/]?$' > /dev/null <<< $url; then
+    url=$(sed -e 's_\.git.*$__' <<< $url)
+  fi
+
+  url=$url$path
+}
+
+# check_path_not_set just ensures we haven't already set
+# a path argument, if it has been set then too many args
+# have been supplied so error and exit
+check_path_not_set() {
+  if [ ! -z "$path" ]; then
+    print_error_and_exit "conflicting arguments"
+  fi
+}
+
+# parse_args will iterate over arguments setting up $path
+# for the url or returning an error if conflicting arguments
+# are supplied.
+parse_args() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -branch|-branch=*|-b|-b=* )
+        check_path_not_set
+        if grep -E '=.*$' > /dev/null <<< $1; then
+          path=/tree/$(sed -e 's/^.*=//' <<< $1)
+        else
+          path=/tree/$(git rev-parse --abbrev-ref HEAD)
+        fi
+        ;;
+      -commit|-commit=*|-c|-c=* )
+        check_path_not_set
+        path=/commit/
+        if grep -E '=.*$' > /dev/null <<< $1; then
+          rev_parse_sha $(sed -e 's/^.*=//' <<< $1)
+        else
+          rev_parse_sha $(git rev-parse --abbrev-ref HEAD)
+        fi
+        ;;
+      -help|-h ) # unfortunately git picks --help up so this will have to do
+        print_usage
+        exit 0
+        ;;
+      * )
+        print_error_and_exit "unknown option"
+        ;;
+    esac
+    shift
+  done
+}
+
+# print_error_and_exit will print the supplied error
+# to stderr, print the expected usage and then exit
+# with a status of 1
+print_error_and_exit() {
+  echo $1 >&2
+  print_usage >&2
+  exit 1
+}
+
+# print_usage prints the command usage to stdout
+print_usage() {
+  echo "usage: git open [-help | -branch=<branch-name> | -commit=<commit-sha>]"
+}
+
+# rev_parse_sha uses git plumbing to find the full commit
+# SHA and append it to $path. It will error and exit if
+# the SHA cannot be found
+rev_parse_sha() {
+  sha=$(git rev-parse $1 2> /dev/null)
+  if [ $? -ne 0 ]; then
+    print_error_and_exit "commit not found"
+  fi
+
+  path=$path$sha
+}
+
+# got some args? parse 'em
+if [ $# -gt 0 ]; then
+  parse_args "$@"
 fi
 
-# change 'git@github.com:user/repo' to url format
-if grep -Evi '^http' > /dev/null <<< $url; then
-  url=$(sed -e 's_:_/_' -e 's_^git@_https://_')
-fi
+build_url
 
 if [ ! -z "$url" ]; then
   case $(uname) in
@@ -22,6 +112,7 @@ if [ ! -z "$url" ]; then
       xdg-open "$url"
       ;;
     'Darwin' )
+
       open "$url"
       ;;
   esac

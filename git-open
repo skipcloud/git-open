@@ -61,7 +61,7 @@ parse_args() {
           rev_parse_sha $(git rev-parse --abbrev-ref HEAD)
         fi
         ;;
-      -help|-h ) # unfortunately git picks --help up so this will have to do
+      -help|-h )
         print_usage
         exit 0
         ;;

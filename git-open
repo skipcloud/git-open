@@ -38,7 +38,7 @@ build_url() {
 # a path argument, if it has been set then too many args
 # have been supplied so error and exit
 check_path_not_set() {
-  if [ ! -z "$path" ]; then
+  if [ "$path" ]; then
     print_error_and_exit "conflicting arguments"
   fi
 }
@@ -111,7 +111,7 @@ fi
 
 build_url
 
-if [ ! -z "$url" ]; then
+if [ "$url" ]; then
   case $(uname) in
     'Linux' )
       xdg-open "$url"

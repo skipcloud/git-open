@@ -16,6 +16,7 @@ build_url() {
   if [ -z "$url" ]; then
     return
   fi
+
   # If a local repo try get the origin url from there
   if grep -E '^/' > /dev/null <<< $url; then
     url=$(cd "${url}"; $cmd)
@@ -23,7 +24,7 @@ build_url() {
 
   # change 'git@github.com:user/repo' to url format
   if grep -Evi '^http' > /dev/null <<< $url; then
-    url=$(sed -e 's_:_/_' -e 's_^git@_https://_' )
+    url=$(sed -e 's_:_/_' -e 's_^git@_https://_' <<< $url)
   fi
 
   # remove trailing '.git' from url

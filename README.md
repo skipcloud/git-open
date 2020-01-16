@@ -12,11 +12,12 @@ create a file there.
 
 ## Usage
 
-After the script has been placed in your `$PATH`
+After the script has been placed in your `$PATH` and assuming you are in some
+directory of a git repo:
 
 `git open [-help | -branch=<branch-name> | -commit=<commit-SHA>]`
 
-Called without any arguments will open the git repo.
+Called without any arguments it will open the git repo in your default browser.
 
 Called with `-branch=<branch-name>` or `-b=<branch-name>` it will open the repo
 at the supplied branch. If the option is used without a branch e.g. `-b` then

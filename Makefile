@@ -1,2 +1,6 @@
+PROG=git-open
+TARGET="$(shell pwd)/${PROG}"
+LINK="/usr/local/bin/${PROG}"
+
 install:
-	@cp ./git-open /usr/local/bin
+	@ln -sf ${TARGET} ${LINK}

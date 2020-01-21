@@ -19,6 +19,7 @@ directory of a git repo:
 git open [-help]
          [-branch=<branch> | -b=<branch> | -branch | -b]
          [-commit=<SHA> | -c=<SHA> | -commit | -c]
+         [-compare=<branch>:<base-branch> | -co=<branch>:<base-branch>  | -compare | -co]
 ```
 
 `git open` without any arguments it will open the git repo in your default browser.
@@ -30,3 +31,9 @@ git open [-help]
 `git open -commit=<commit-SHA>` will open the repo at the supplied commit.
 
 `git open -commit` will open the repo at the commit you are currently on.
+
+`git open -compare=<branch-name>:<base-name>` will open the repo comparing the supplied branch against the base branch.
+
+`git open -compare=<branch-name>` will open the repo comparing the supplied branch against master.
+
+`git open -compare` will open the repo comparing the branch you are currently on against master.

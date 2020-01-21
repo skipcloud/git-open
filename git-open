@@ -61,14 +61,7 @@ parse_args() {
       -compare|-compare=* )
         check_path_not_set
         if grep -E '=.*$' > /dev/null <<< $1; then
-          branches=$(sed -e 's/^.*=//' <<< $1)
-          branch=$(sed -e 's/\:.*//' <<< $branches)
-          if grep -E ':.*$' > /dev/null <<< $1; then
-            base=$(sed -e 's/^.*://' <<< $branches)
-            path=/compare/$base...$branch
-          else
-            path=/compare/$branch
-          fi
+          set_branch_compare_path $(sed -e 's/^.*=//' <<< $1)
         else
           path=/compare/$(git rev-parse --abbrev-ref HEAD)
         fi
@@ -118,6 +111,20 @@ rev_parse_sha() {
   fi
 
   path=$path$sha
+}
+
+# set the $path for the comparing branches
+# either compare branch and base branch if specified
+# or compare branch with default branch for repo
+set_branch_compare_path() {
+  branch=$(sed -e 's/\:.*//' <<< $1)
+
+  if grep -E ':.*$' > /dev/null <<< $1; then
+    base=$(sed -e 's/^.*://' <<< $1)
+    path=/compare/$base...$branch
+  else
+    path=/compare/$branch
+  fi
 }
 
 # got some args? parse 'em

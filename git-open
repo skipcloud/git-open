@@ -58,6 +58,21 @@ parse_args() {
           path=/tree/$(git rev-parse --abbrev-ref HEAD)
         fi
         ;;
+      -compare|-compare=* )
+        check_path_not_set
+        if grep -E '=.*$' > /dev/null <<< $1; then
+          branches=$(sed -e 's/^.*=//' <<< $1)
+          branch=$(sed -e 's/\:.*//' <<< $branches)
+          if grep -E ':.*$' > /dev/null <<< $1; then
+            base=$(sed -e 's/^.*://' <<< $branches)
+            path=/compare/$base...$branch
+          else
+            path=/compare/$branch
+          fi
+        else
+          path=/compare/$(git rev-parse --abbrev-ref HEAD)
+        fi
+        ;;
       -commit|-commit=*|-c|-c=* )
         check_path_not_set
         path=/commit/
@@ -90,7 +105,7 @@ print_error_and_exit() {
 
 # print_usage prints the command usage to stdout
 print_usage() {
-  echo "usage: git open [-help | -branch=<branch-name> | -commit=<commit-sha>]"
+  echo "usage: git open [-help | -branch=<branch-name> | -commit=<commit-sha> | -compare=<branch-name>:<base-name>]"
 }
 
 # rev_parse_sha uses git plumbing to find the full commit

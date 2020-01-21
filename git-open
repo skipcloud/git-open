@@ -58,7 +58,7 @@ parse_args() {
           path=/tree/$(git rev-parse --abbrev-ref HEAD)
         fi
         ;;
-      -compare|-compare=* )
+      -compare|-compare=*|-co|-co=* )
         check_path_not_set
         if grep -E '=.*$' > /dev/null <<< $1; then
           set_branch_compare_path $(sed -e 's/^.*=//' <<< $1)

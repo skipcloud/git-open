@@ -19,7 +19,7 @@ directory of a git repo:
 git open [-help]
          [-branch=<branch> | -b=<branch> | -branch | -b]
          [-commit=<SHA> | -c=<SHA> | -commit | -c]
-         [-compare=<branch> | -co=<branch> | -compare | -co]
+         [-compare=<branch>:<base-branch> | -co=<branch>:<base-branch>  | -compare | -co]
 ```
 
 `git open` without any arguments it will open the git repo in your default browser.

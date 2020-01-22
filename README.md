@@ -24,13 +24,19 @@ git open [-help]
 
 `git open` without any arguments it will open the git repo in your default browser.
 
+### -branch
+
 `git open -branch=<branch-name>` will open the repo at the supplied branch.
 
 `git open -branch` will open the repo at the branch you are currently on.
 
+### -commit
+
 `git open -commit=<commit-SHA>` will open the repo at the supplied commit.
 
 `git open -commit` will open the repo at the commit you are currently on.
+
+### -compare
 
 `git open -compare=<branch-name>:<base-name>` will open the repo comparing the supplied branch against the base branch.
 

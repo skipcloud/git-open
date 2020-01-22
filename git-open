@@ -120,6 +120,9 @@ set_branch_compare_path() {
   branch=$(sed -e 's/\:.*//' <<< $1)
 
   if grep -E ':.*$' > /dev/null <<< $1; then
+    if [ -z "$branch" ]; then
+      branch=$(git rev-parse --abbrev-ref HEAD)
+    fi
     base=$(sed -e 's/^.*://' <<< $1)
     path=/compare/$base...$branch
   else

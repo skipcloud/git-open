@@ -40,6 +40,9 @@ git open [-help]
 
 `git open -compare=<branch-name>:<base-name>` will open the repo comparing the supplied branch against the base branch.
 
+`git open -compare=:<base-name>` will open the repo comparing your current
+branch against the base branch.
+
 `git open -compare=<branch-name>` will open the repo comparing the supplied branch against master.
 
 `git open -compare` will open the repo comparing the branch you are currently on against master.

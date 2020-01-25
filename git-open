@@ -2,10 +2,16 @@
 # Simple bash script to open the current github repo you are in
 # in your default browser. Ensure this file is in your $PATH
 #
-# usage: git open [-help | -branch=<branch-name> | -commit=<commit-sha>]"
+# usage: git open [-help|-h]
+#                 [-branch=<branch> | -b=<branch>]
+#                 [-branch | -b]
+#                 [-commit=<commit-sha> | -c=<commit-sha>]
+#                 [-commit | -c]
+#                 [-compare=<branch>:<base> | -co=<branch>:<base>]
+#                 [-compare=<branch> | -co=<branch>]
+#                 [-compare=:<base> | -co=:<base>]
+#                 [-compare | -co]
 
-cmd='git config --get remote.origin.url'
-url=$($cmd)
 path=
 
 # build_url will pull the remote origin url from the git config
@@ -40,7 +46,8 @@ build_url() {
 # have been supplied so error and exit
 check_path_not_set() {
   if [ "$path" ]; then
-    print_error_and_exit "conflicting arguments"
+    print_error_and_usage "conflicting arguments"
+    exit 1
   fi
 }
 
@@ -51,54 +58,74 @@ parse_args() {
   while [ $# -gt 0 ]; do
     case "$1" in
       -branch|-branch=*|-b|-b=* )
-        check_path_not_set
-        if grep -E '=.*$' > /dev/null <<< $1; then
-          path=/tree/$(sed -e 's/^.*=//' <<< $1)
-        else
-          path=/tree/$(git rev-parse --abbrev-ref HEAD)
-        fi
+        set_branch_path $(get_value $1)
         ;;
       -compare|-compare=*|-co|-co=* )
-        check_path_not_set
-        if grep -E '=.*$' > /dev/null <<< $1; then
-          set_branch_compare_path $(sed -e 's/^.*=//' <<< $1)
-        else
-          path=/compare/$(git rev-parse --abbrev-ref HEAD)
-        fi
+        set_branch_compare_path $(get_value $1)
         ;;
       -commit|-commit=*|-c|-c=* )
-        check_path_not_set
-        path=/commit/
-        if grep -E '=.*$' > /dev/null <<< $1; then
-          rev_parse_sha $(sed -e 's/^.*=//' <<< $1)
-        else
-          rev_parse_sha $(git rev-parse --abbrev-ref HEAD)
-        fi
+        set_commit_path $(get_value $1)
         ;;
       -help|-h )
         print_usage
         exit 0
         ;;
       * )
-        print_error_and_exit "unknown option"
+        print_error_and_usage "unknown option"
+        exit 1
         ;;
     esac
     shift
   done
 }
 
-# print_error_and_exit will print the supplied error
+print_error() {
+  echo $1 >&2
+}
+
+# print_error_and_usage will print the supplied error
 # to stderr, print the expected usage and then exit
 # with a status of 1
-print_error_and_exit() {
-  echo $1 >&2
+print_error_and_usage() {
+  print_error $1
   print_usage >&2
-  exit 1
 }
 
 # print_usage prints the command usage to stdout
 print_usage() {
-  echo "usage: git open [-help | -branch=<branch-name> | -commit=<commit-sha> | -compare=<branch-name>:<base-name>]"
+  cat <<TXT
+  usage: git open [-help|-h]
+                  [-branch=<branch> | -b=<branch>]
+                  [-branch | -b]
+                  [-commit=<commit-sha> | -c=<commit-sha>]
+                  [-commit | -c]
+                  [-compare=<branch>:<base> | -co=<branch>:<base>]
+                  [-compare=<branch> | -co=<branch>]
+                  [-compare=:<base> | -co=:<base>]
+                  [-compare | -co]
+
+  For more details on how the options work please refer to the README
+TXT
+}
+
+# get_remote_url will check the local git config for a remote url
+get_remote_url() {
+  local result=$(git config --get remote.origin.url)
+  echo $result
+}
+
+# get_value will remove the option part of the input
+# returning the value, i.e. -c=hi -> hi
+get_value() {
+  if grep -E '=.*$' > /dev/null <<< $1; then
+    echo $(sed -e 's/^.*=//' <<< $1)
+  fi
+}
+
+# rev_parse_head returns the current branch the user is on
+rev_parse_head() {
+  local result=$(git rev-parse --abbrev-ref HEAD)
+  echo $result
 }
 
 # rev_parse_sha uses git plumbing to find the full commit
@@ -107,28 +134,73 @@ print_usage() {
 rev_parse_sha() {
   sha=$(git rev-parse $1 2> /dev/null)
   if [ $? -ne 0 ]; then
-    print_error_and_exit "commit not found"
+    print_error_and_usage "commit not found"
+    return 1
   fi
+  echo $sha
+  return 0
+}
 
-  path=$path$sha
+# set_branch_path sets the branch path, checking the branch
+# exists if one is supplied. Otherwise using current branch.
+set_branch_path() {
+  check_path_not_set
+  if [ -n "$1" ]; then
+    git rev-parse --verify "$1" > /dev/null
+    if [ $? -ne 0 ]; then
+      print_error "branch not found"
+      exit 1
+    fi
+    path=/tree/$1
+  else
+    path=/tree/$(rev_parse_head)
+  fi
+  return 0
 }
 
 # set the $path for the comparing branches
 # either compare branch and base branch if specified
 # or compare branch with default branch for repo
 set_branch_compare_path() {
-  branch=$(sed -e 's/\:.*//' <<< $1)
+  check_path_not_set
+  path=/compare/
 
-  if grep -E ':.*$' > /dev/null <<< $1; then
-    if [ -z "$branch" ]; then
-      branch=$(git rev-parse --abbrev-ref HEAD)
+  # if not zero length then option had value, i.e. -co=<branch>
+  if [ -n "$1" ]; then
+    branch=$(sed -e 's/\:.*//' <<< $1)
+
+    if grep -E ':.*$' > /dev/null <<< $1; then
+      if [ -z "$branch" ]; then
+        branch=$(git rev-parse --abbrev-ref HEAD)
+      fi
+      base=$(sed -e 's/^.*://' <<< $1)
+      path=$path$base...$branch
+    else
+      path=$path$branch
     fi
-    base=$(sed -e 's/^.*://' <<< $1)
-    path=/compare/$base...$branch
   else
-    path=/compare/$branch
+    path=$path$(rev_parse_head)
   fi
 }
+
+# set_commit_path will find the commit SHA and
+# set $path
+set_commit_path() {
+  check_path_not_set
+  path=/commit/
+
+  if [ -n "$1" ]; then
+    path=$path$(rev_parse_sha $1)
+  else
+    path=$path$(rev_parse_sha "HEAD")
+  fi
+
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
+}
+
+url=$(get_remote_url)
 
 # got some args? parse 'em
 if [ $# -gt 0 ]; then

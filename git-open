@@ -33,11 +33,6 @@ build_url() {
     url=$(sed -e 's_:_/_' -e 's_^git@_https://_' <<< $url)
   fi
 
-  # remove trailing '.git' from url
-  if grep -Ei '\.git[/]?$' > /dev/null <<< $url; then
-    url=$(sed -e 's_\.git.*$__' <<< $url)
-  fi
-
   url=$url$path
 }
 

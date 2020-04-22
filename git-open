@@ -33,6 +33,10 @@ build_url() {
     url=$(sed -e 's_:_/_' -e 's_^git@_https://_' <<< $url)
   fi
 
+  if [ -n "$path" ] && grep -Ei '\.git$' > /dev/null <<< $url; then
+    url=$(sed 's/\.git$//' <<< $url)
+  fi
+
   url=$url$path
 }
 

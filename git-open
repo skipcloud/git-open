@@ -24,17 +24,18 @@ build_url() {
   fi
 
   # If a local repo try get the origin url from there
-  if grep -E '^/' > /dev/null <<< $url; then
+  if grep -Eq '^/' <<< $url; then
     url=$(cd "${url}"; $cmd)
   fi
 
   # change 'git@github.com:user/repo' to url format
-  if grep -Evi '^http' > /dev/null <<< $url; then
+  if grep -Eviq '^http' <<< $url; then
     url=$(sed -e 's_:_/_' -e 's_^git@_https://_' <<< $url)
   fi
 
-  if [ -n "$path" ] && grep -Ei '\.git$' > /dev/null <<< $url; then
-    url=$(sed 's/\.git$//' <<< $url)
+  # remove trailing '.git' from url
+  if grep -Eiq '\.git/?$' <<< $url; then
+    url=$(sed -e 's_\.git/\?$__' <<< $url)
   fi
 
   url=$url$path
@@ -116,7 +117,7 @@ get_remote_url() {
 # get_value will remove the option part of the input
 # returning the value, i.e. -c=hi -> hi
 get_value() {
-  if grep -E '=.*$' > /dev/null <<< $1; then
+  if grep -Eq '=.*$' <<< $1; then
     echo $(sed -e 's/^.*=//' <<< $1)
   fi
 }
@@ -168,7 +169,7 @@ set_branch_compare_path() {
   if [ -n "$1" ]; then
     branch=$(sed -e 's/\:.*//' <<< $1)
 
-    if grep -E ':.*$' > /dev/null <<< $1; then
+    if grep -Eq ':.*$' <<< $1; then
       if [ -z "$branch" ]; then
         branch=$(git rev-parse --abbrev-ref HEAD)
       fi

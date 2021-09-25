@@ -1,6 +1,6 @@
 # git-open
 Simple [Git subcommand](https://web.mit.edu/git/git-doc/howto/new-command.html)
-in bash script form to open a github repo in your default browser
+in shell script form to open a github repo in your default browser
 
 ## Installation
 
